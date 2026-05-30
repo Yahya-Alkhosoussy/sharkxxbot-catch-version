@@ -3,7 +3,7 @@ from datetime import datetime
 from random import choice, randint
 from typing import Literal
 
-from sharkxxbot.shark_db_interaction import (
+from shark_db_interaction import (
     SharkRarity,
     get_feed_info,
     get_shark_names,
