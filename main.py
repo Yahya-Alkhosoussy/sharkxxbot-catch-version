@@ -1,24 +1,25 @@
 import asyncio  # noqa
 import random  # noqa
-from pathlib import Path  # noqa
-from os import getenv
+import os
 from datetime import datetime
+import subprocess
+import sys
 
 from dotenv import load_dotenv  # noqa
+import shutil
 from twitchAPI.chat import Chat, ChatCommand, ChatMessage, EventData  # noqa
-from twitchAPI.eventsub.websocket import EventSubWebsocket  # noqa
-from twitchAPI.helper import first  # noqa
 from twitchAPI.oauth import UserAuthenticator  # noqa
 from twitchAPI.twitch import Twitch  # noqa
 from twitchAPI.type import AuthScope, ChatEvent  # noqa
 
 from shark_catch import get_sharkpct, get_missing_shark_names, feed_sharks, compute_mood, choose_shark_for_catch
 from shark_db_interaction import get_feed_info, reward_coins, catch_shark, is_daily_catch_done
+from utils.core import get_full_path
 
 load_dotenv()
 
-CLIENT_ID = getenv("CLIENT_ID")
-CLIENT_SECRET = getenv("CLIENT_SECRET")
+CLIENT_ID = os.getenv("CLIENT_ID")
+CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 USER_SCOPES = [AuthScope.CHAT_READ, AuthScope.CHAT_EDIT]
 TARGET_CHANNELs = ["spiderbyte2007", "sharkocalypse"]
 assert CLIENT_ID, "Client ID is none, check if ENV exists"
@@ -177,6 +178,43 @@ class SharkXXCatchBot:
         else:
             await cmd.reply(f"{name}, I could not find your dex, did you link your twitch or do the tutorial on discord?")
 
+    async def shark_tooth(self, cmd: ChatCommand):
+        user = cmd.user
+        name = user.name
+        twitch_id = user.id
+        # Wait for further instructions
+
+    async def restart(self, cmd: ChatCommand):
+        if cmd.user.name != "spiderbyte2007":
+            await cmd.reply("Only spider can command me to restart")
+            return
+
+        os.environ["PATH"] = get_full_path()
+        git_path = shutil.which("git")
+        try:
+            if not git_path:
+                await cmd.reply("Cannot find git, try again later")
+                return
+            subprocess.run([git_path, "pull"])
+            await cmd.reply("Pulled successfully")
+            subprocess.run([sys.executable, "setup.py"])
+            await cmd.reply("Successfully installed all dependencies")
+        except subprocess.CalledProcessError as e:
+            await cmd.reply(f"Failed, error: {e.stderr}")
+        except Exception as e:
+            await cmd.reply(f"Failed: Error {str(e)}")
+
+        await cmd.send("Restarting now...")
+
+        subprocess.Popen([sys.executable] + sys.argv)
+        await self.close_bot()
+
+    async def close_bot(self):
+        assert self.chat, "chat is None"
+        assert self.twitch, "twitch is None"
+        self.chat.stop()
+        await self.twitch.close()
+
     async def run(self):
         await self.setup()
         # Making sure everything was set up properly
@@ -200,6 +238,8 @@ class SharkXXCatchBot:
         self.chat.register_command("catchshark", self.catchshark)
         self.chat.register_command("sharkcatch", self.catchshark)
 
+        self.chat.register_command("restart", self.restart)
+
         # we are done with our setup, lets start this bot up!
         self.chat.start()
 
@@ -208,8 +248,7 @@ class SharkXXCatchBot:
             input("press ENTER to stop \n")
         finally:
             # now we can close the chat bot and the twitch api client
-            self.chat.stop()
-            await self.twitch.close()
+            await self.close_bot()
 
 
 bot = SharkXXCatchBot(CLIENT_ID, CLIENT_SECRET, USER_SCOPES, TARGET_CHANNELs)
