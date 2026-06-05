@@ -13,7 +13,7 @@ from twitchAPI.twitch import Twitch  # noqa
 from twitchAPI.type import AuthScope, ChatEvent  # noqa
 
 from shark_catch import get_sharkpct, get_missing_shark_names, feed_sharks, compute_mood, choose_shark_for_catch
-from shark_db_interaction import get_feed_info, reward_coins, catch_shark, is_daily_catch_done
+from shark_db_interaction import get_feed_info, reward_coins, catch_shark, is_daily_catch_done, get_shark_fact
 from utils.core import get_full_path
 
 load_dotenv()
@@ -171,10 +171,17 @@ class SharkXXCatchBot:
         shark_caught, rarity = await choose_shark_for_catch()
         coins_earned = await reward_coins(int(twitch_id), rarity, shark_caught)
         caught = await catch_shark(int(twitch_id), name, datetime.now(), shark_caught, rarity)
-        if caught:
+        fact = await get_shark_fact(shark_caught)
+        if caught and fact:
             await cmd.reply(
                 f"Congratulations {name}, you have caught a {rarity} {shark_caught} and earned {coins_earned} coins."
             )
+            await cmd.reply(fact)
+        elif caught:
+            await cmd.reply(
+                f"Congratulations {name}, you have caught a {rarity} {shark_caught} and earned {coins_earned} coins."
+            )
+            await cmd.reply(f"No fact was found for {name}")
         else:
             await cmd.reply(f"{name}, I could not find your dex, did you link your twitch or do the tutorial on discord?")
 
@@ -185,7 +192,7 @@ class SharkXXCatchBot:
         # Wait for further instructions
 
     async def restart(self, cmd: ChatCommand):
-        if cmd.user.name != "spiderbyte2007":
+        if cmd.user.name != "spiderbyte2007" or cmd.user.name == "sharkocalypse":
             await cmd.reply("Only spider can command me to restart")
             return
 
