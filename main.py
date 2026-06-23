@@ -174,14 +174,12 @@ class SharkXXCatchBot:
         fact = await get_shark_fact(shark_caught)
         if caught and fact:
             await cmd.reply(
-                f"Congratulations {name}, you have caught a {rarity} {shark_caught} and earned {coins_earned} coins."
+                f"Congratulations {name}, you have caught a {rarity} {shark_caught} and earned {coins_earned} coins. {fact}"
             )
-            await cmd.reply(fact)
         elif caught:
             await cmd.reply(
-                f"Congratulations {name}, you have caught a {rarity} {shark_caught} and earned {coins_earned} coins."
+                f"Congratulations {name}, you have caught a {rarity} {shark_caught} and earned {coins_earned} coins. No fact was found"  # noqa
             )
-            await cmd.reply(f"No fact was found for {name}")
         else:
             await cmd.reply(f"{name}, I could not find your dex, did you link your twitch or do the tutorial on discord?")
 
