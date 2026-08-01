@@ -8,7 +8,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 
 
-from shark_db_interaction import (
+from sharkCatch.shark_db_interaction import (
     SharkRarity,
     get_feed_info,
     get_shark_names,
