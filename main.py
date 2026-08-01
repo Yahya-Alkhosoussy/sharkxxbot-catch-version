@@ -12,8 +12,8 @@ from twitchAPI.oauth import UserAuthenticator  # noqa
 from twitchAPI.twitch import Twitch  # noqa
 from twitchAPI.type import AuthScope, ChatEvent  # noqa
 
-from shark_catch import get_sharkpct, get_missing_shark_names, feed_sharks, compute_mood, choose_shark_for_catch
-from shark_db_interaction import get_feed_info, reward_coins, catch_shark, is_daily_catch_done, get_shark_fact
+from sharkCatch.shark_catch import get_sharkpct, get_missing_shark_names, feed_sharks, compute_mood, choose_shark_for_catch
+from sharkCatch.shark_db_interaction import get_feed_info, reward_coins, catch_shark, is_daily_catch_done, get_shark_fact
 from utils.core import get_full_path
 
 load_dotenv()
