@@ -29,6 +29,10 @@ class Boost:
         if self.amount <= 0:
             raise ValueError("Boost amount cannot be less than or equal to 0")
 
+    def __bool__(self):
+        if self.boost:
+            return True
+        return False
 
 @dataclass()
 class Nets:
@@ -88,7 +92,7 @@ class Fish:
 
 
     @property
-    def get_coin_value(self) -> int:
+    def coin_value(self) -> int:
         if self.boost:
             match self.rarity:
                 case Rarity.TRASH:
@@ -112,3 +116,56 @@ class Fish:
                 return self.__get_fish_value_size(self.size, 10)
             case _:
                 raise ValueError("Rarity is not in the known list of rarities.")
+
+class SharkRarity(StrEnum):
+    VERY_COMMON = "very common"
+    COMMON = "common"
+    UNCOMMON = "uncommon"
+    RARE = "rare"
+    ULTRA_RARE = "ultra rare"
+
+@dataclass(frozen=True)
+class Shark:
+    user_id: int
+    net_used: Nets
+    name: str
+    catch_rarity: SharkRarity
+    rarity: Rarity
+    boost: Boost
+
+    def __get_shark_value_rarity(self, normal_value: int) -> int:
+        match self.catch_rarity:
+            case SharkRarity.VERY_COMMON:
+                return normal_value
+            case SharkRarity.COMMON:
+                return normal_value + 5
+            case SharkRarity.UNCOMMON:
+                return normal_value + 10
+            case SharkRarity.RARE:
+                return normal_value + 15
+            case SharkRarity.ULTRA_RARE:
+                return normal_value + 20
+            case _:
+                raise ValueError("Unknown catch rarity presented.")
+
+    @property
+    def coin_value(self) -> int:
+        if self.boost:
+            match self.rarity:
+                case Rarity.COMMON:
+                    return self.__get_shark_value_rarity(10) * self.boost.amount
+                case Rarity.SHINY:
+                    return self.__get_shark_value_rarity(20) * self.boost.amount
+                case Rarity.LEGENDARY:
+                    return self.__get_shark_value_rarity(30) * self.boost.amount
+                case _:
+                    raise ValueError("Unknown rarity presented.")
+        match self.rarity:
+            case Rarity.COMMON:
+                return self.__get_shark_value_rarity(10)
+            case Rarity.SHINY:
+                return self.__get_shark_value_rarity(20)
+            case Rarity.LEGENDARY:
+                return self.__get_shark_value_rarity(30)
+            case _:
+                raise ValueError("Unknown rarity presented.")
