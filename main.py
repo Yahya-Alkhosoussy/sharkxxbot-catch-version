@@ -15,6 +15,7 @@ from twitchAPI.type import AuthScope, ChatEvent  # noqa
 from sharkCatch.shark_catch import get_sharkpct, get_missing_shark_names, feed_sharks, compute_mood, choose_shark_for_catch
 from sharkCatch.shark_db_interaction import get_feed_info, reward_coins, catch_shark, is_daily_catch_done, get_shark_fact
 from utils.core import get_full_path
+from fishing.fishing import Fishing
 
 load_dotenv()
 
@@ -47,6 +48,7 @@ class SharkXXCatchBot:
         # Given values during set up
         self.twitch: Twitch | None = None
         self.chat: Chat | None = None
+        self.Fishing: Fishing | None = None
 
     async def setup(self):
         # Non-redeem section
@@ -58,6 +60,7 @@ class SharkXXCatchBot:
         await self.twitch.set_user_authentication(token, self.user_scope, refresh_token)
 
         self.chat = await Chat(self.twitch)
+        self.Fishing = Fishing(self.chat) # after Chat is initialised so it is cleanly made
 
     async def on_message(self, msg: ChatMessage):
         assert msg.room
@@ -219,6 +222,7 @@ class SharkXXCatchBot:
         # Making sure everything was set up properly
         assert self.chat, "chat is still None"
         assert self.twitch, "twitch is still None"
+        assert self.Fishing, "Fishing is still None"
 
         # listen to when the bot is done starting up and ready to join channels
         self.chat.register_event(ChatEvent.READY, self.on_ready)
@@ -236,6 +240,8 @@ class SharkXXCatchBot:
 
         self.chat.register_command("catchshark", self.catchshark)
         self.chat.register_command("sharkcatch", self.catchshark)
+
+        self.chat.register_command("fishing", self.Fishing.fishing_cmd)
 
         self.chat.register_command("restart", self.restart)
 
