@@ -30,9 +30,27 @@ class Boost:
             raise ValueError("Boost amount cannot be less than or equal to 0")
 
 
-@dataclass(frozen=True)
+@dataclass()
 class Nets:
-    net: NetsEnum
+    net: NetsEnum | str
+
+    def __post_init__(self) -> None:
+        if isinstance(self.net, NetsEnum):
+            return
+        match self.net.lower():
+            case NetsEnum.DOOM:
+                self.net = NetsEnum.DOOM
+            case NetsEnum.TITANIUM:
+                self.net = NetsEnum.TITANIUM
+            case NetsEnum.GOLD:
+                self.net = NetsEnum.GOLD
+            case NetsEnum.LEATHER:
+                self.net = NetsEnum.LEATHER
+            case NetsEnum.ROPE:
+                self.net = NetsEnum.ROPE
+            case _:
+                raise ValueError("That is not a known net")
+
 
     @property
     def get_catch_odds(self) -> int:
