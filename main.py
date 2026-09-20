@@ -242,6 +242,7 @@ class SharkXXCatchBot:
         self.chat.register_command("sharkcatch", self.catchshark)
 
         self.chat.register_command("fish", self.Fishing.fishing_cmd)
+        self.chat.register_command("Fish", self.Fishing.fishing_cmd)
 
         self.chat.register_command("restart", self.restart)
 
