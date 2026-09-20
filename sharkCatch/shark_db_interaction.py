@@ -5,7 +5,7 @@ from pathlib import Path
 
 import aiosqlite
 
-base_db_path = Path(__file__).parent.parent / "Shark-Bot" / "databases"
+base_db_path = Path(__file__).parent.parent.parent / "Shark-Bot" / "databases"
 shark_file_path = base_db_path / "shark_game.db"
 
 
