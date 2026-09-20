@@ -115,7 +115,7 @@ async def remove_net_use(catch: Shark | Fish):
         if isinstance(net, NetsEnum):
             net = str(net)
         async with conn.execute(
-            "SELECT net_uses, id FROM dex WHERE user_id=? AND net=? ORDER BY id DESC", (catch.user_id, net)
+            "SELECT net_uses, id FROM dex WHERE twitch_id=? AND net=? ORDER BY id DESC", (catch.user_id, net)
         ) as cur:
             result = await cur.fetchone()
             if result is None:
