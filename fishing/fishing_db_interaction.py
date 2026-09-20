@@ -52,7 +52,7 @@ async def add_fish(fish: Fish):
             case Rarity.LEGENDARY:
                 await conn.execute("UPDATE fish SET legendary = legendary + 1 WHERE twitch_id=?", (fish.user_id,))
 
-        new_coin_value = get_new_coins_for_user(fish, discord_id)
+        new_coin_value = await get_new_coins_for_user(fish, discord_id)
 
         async with conn.execute("SELECT id FROM dex WHERE user_id=? ORDER BY id DESC", (discord_id,)) as cur:
             result = await cur.fetchone()
