@@ -55,7 +55,7 @@ class Fishing:
 
         odd = randint(0, 99)
         catch_odds = net.get_catch_odds
-        if odd >= catch_odds:
+        if odd <= catch_odds:
             boost = Boost(False, 2)
             catch = await self.__get_caught_item(cmd.user, net, boost)
             if isinstance(catch, Shark):
