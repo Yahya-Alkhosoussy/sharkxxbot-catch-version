@@ -124,7 +124,7 @@ async def remove_net_use(catch: Shark | Fish):
             id_value: int = result[1]
             if available_net_uses - 1 <= 0:
                 await disable_net(catch.net_used.net, conn, await get_discord_id(catch.username))
-            await conn.execute("UPDATE dex SET net_use = net_use - 1 WHERE id=?", (id_value,))
+            await conn.execute("UPDATE dex SET net_uses = net_uses - 1 WHERE id=?", (id_value,))
 
 
 async def disable_net(net: NetsEnum | str, conn: Connection, discord_id: int):
