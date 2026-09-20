@@ -88,8 +88,8 @@ async def is_net_available(username: str, net: str) -> bool:
 
     i = 0
     try:
-        for net in all_nets[0]:
-            if net == 0:
+        for _net in all_nets[0]:
+            if _net == 0:
                 i += 1
             else:
                 match i:
