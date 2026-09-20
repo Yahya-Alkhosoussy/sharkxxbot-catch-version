@@ -79,7 +79,7 @@ class Nets:
 @dataclass(frozen=True)
 class Fish:
     username: str
-    user_id: str
+    user_id: int
     rarity: Rarity
     net_used: Nets
     size: Size
