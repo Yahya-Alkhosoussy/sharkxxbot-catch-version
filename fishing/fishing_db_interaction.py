@@ -3,7 +3,7 @@ from datetime import datetime, timedelta  # noqa
 from pathlib import Path
 from enum import Enum
 
-from aiosqlite import connect, OperationalError
+from aiosqlite import connect, OperationalError, Connection
 
 from fishing.utils import Fish, NetsEnum, Shark, Rarity
 
@@ -107,6 +107,39 @@ async def is_net_available(username: str, net: str) -> bool:
     if net.strip() in nets_available.keys():
         return True
     return False
+
+
+async def remove_net_use(catch: Shark | Fish):
+    async with connect(shark_file_path) as conn:
+        net = catch.net_used.net
+        if isinstance(net, NetsEnum):
+            net = str(net)
+        async with conn.execute(
+            "SELECT net_uses, id FROM dex WHERE user_id=? AND net=? ORDER BY id DESC", (catch.user_id, net)
+        ) as cur:
+            result = await cur.fetchone()
+            if result is None:
+                raise ValueError("Could not find user")
+            available_net_uses: int = result[0]
+            id_value: int = result[1]
+            if available_net_uses - 1 <= 0:
+                await disable_net(catch.net_used.net, conn, await get_discord_id(catch.username))
+            await conn.execute("UPDATE dex SET net_use = net_use - 1 WHERE id=?", (id_value,))
+
+
+async def disable_net(net: NetsEnum | str, conn: Connection, discord_id: int):
+    match net:
+        case NetsEnum.ROPE:
+            pass
+        case NetsEnum.LEATHER:
+            await conn.execute("UPDATE nets SET 'leather net'=0 WHERE user_id=?", (discord_id,))
+        case NetsEnum.GOLD:
+            await conn.execute("UPDATE nets SET 'gold net'=0 WHERE user_id=?", (discord_id,))
+        case NetsEnum.TITANIUM:
+            await conn.execute("UPDATE nets SET 'titanium net'=0 WHERE user_id=?", (discord_id,))
+        case NetsEnum.DOOM:
+            await conn.execute("UPDATE nets SET 'net of doom'=0 WHERE user_id=?", (discord_id,))
+    await conn.commit()
 
 
 async def get_shark_names():
