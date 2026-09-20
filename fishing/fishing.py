@@ -44,7 +44,7 @@ class Fishing:
 
     async def fishing_cmd(self, cmd: ChatCommand):
         if cmd.text[len("!fish") :] != "":
-            available = is_net_available(cmd.name, cmd.text[len("!fish") :])
+            available = await is_net_available(cmd.name, cmd.text[len("!fish") :])
             if not available:
                 net = Nets("rope net")
                 await cmd.reply("This net is not available or I could not find it. Using basic net.")
@@ -55,7 +55,7 @@ class Fishing:
 
         odd = randint(0, 99)
         catch_odds = net.get_catch_odds
-        if odd <= catch_odds:
+        if odd >= catch_odds:
             boost = Boost(False, 2)
             catch = await self.__get_caught_item(cmd.user, net, boost)
             if isinstance(catch, Shark):
