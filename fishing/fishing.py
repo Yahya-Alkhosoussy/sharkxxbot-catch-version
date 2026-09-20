@@ -49,7 +49,7 @@ class Fishing:
                 net = Nets("rope net")
                 await cmd.reply("This net is not available or I could not find it. Using basic net.")
             else:
-                net = Nets(cmd.text[len("!fish") :])
+                net = Nets(cmd.text[len("!fish") :].strip())
         else:
             net = Nets("rope net")
 
