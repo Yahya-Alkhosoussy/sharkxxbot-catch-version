@@ -9,16 +9,19 @@ class NetsEnum(StrEnum):
     TITANIUM = "titanium net"
     DOOM = "net of doom"
 
+
 class Rarity(StrEnum):
     TRASH = "trash"
     COMMON = "common"
     SHINY = "shiny"
     LEGENDARY = "legendary"
 
+
 class Size(StrEnum):
     LARGE = "large"
     MEDIUM = "medium"
     SMALL = "small"
+
 
 @dataclass(frozen=True)
 class Boost:
@@ -33,6 +36,7 @@ class Boost:
         if self.boost:
             return True
         return False
+
 
 @dataclass()
 class Nets:
@@ -55,7 +59,6 @@ class Nets:
             case _:
                 raise ValueError("That is not a known net")
 
-
     @property
     def get_catch_odds(self) -> int:
         match self.net:
@@ -72,8 +75,11 @@ class Nets:
             case _:
                 raise ValueError("Net is not in the known nets list")
 
+
 @dataclass(frozen=True)
 class Fish:
+    username: str
+    user_id: str
     rarity: Rarity
     net_used: Nets
     size: Size
@@ -89,7 +95,6 @@ class Fish:
                 return normal_amount
             case _:
                 raise ValueError("Size isn't one of the known options")
-
 
     @property
     def coin_value(self) -> int:
@@ -117,6 +122,7 @@ class Fish:
             case _:
                 raise ValueError("Rarity is not in the known list of rarities.")
 
+
 class SharkRarity(StrEnum):
     VERY_COMMON = "very common"
     COMMON = "common"
@@ -124,14 +130,17 @@ class SharkRarity(StrEnum):
     RARE = "rare"
     ULTRA_RARE = "ultra rare"
 
+
 @dataclass(frozen=True)
 class Shark:
+    username: str
     user_id: int
     net_used: Nets
     name: str
     catch_rarity: SharkRarity
     rarity: Rarity
     boost: Boost
+    time_caught: str
 
     def __get_shark_value_rarity(self, normal_value: int) -> int:
         match self.catch_rarity:
