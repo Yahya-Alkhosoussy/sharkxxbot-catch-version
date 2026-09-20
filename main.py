@@ -1,21 +1,22 @@
-import asyncio  # noqa
-import random  # noqa
+import asyncio
 import os
-from datetime import datetime
+import random
+import shutil
 import subprocess
 import sys
+from datetime import datetime
+from pathlib import Path
 
-from dotenv import load_dotenv  # noqa
-import shutil
-from twitchAPI.chat import Chat, ChatCommand, ChatMessage, EventData  # noqa
-from twitchAPI.oauth import UserAuthenticator  # noqa
-from twitchAPI.twitch import Twitch  # noqa
-from twitchAPI.type import AuthScope, ChatEvent  # noqa
+from dotenv import load_dotenv
+from twitchAPI.chat import Chat, ChatCommand, ChatMessage, EventData
+from twitchAPI.oauth import UserAuthenticationStorageHelper
+from twitchAPI.twitch import Twitch
+from twitchAPI.type import AuthScope, ChatEvent
 
-from sharkCatch.shark_catch import get_sharkpct, get_missing_shark_names, feed_sharks, compute_mood, choose_shark_for_catch
-from sharkCatch.shark_db_interaction import get_feed_info, reward_coins, catch_shark, is_daily_catch_done, get_shark_fact
-from utils.core import get_full_path
 from fishing.fishing import Fishing
+from sharkCatch.shark_catch import choose_shark_for_catch, compute_mood, feed_sharks, get_missing_shark_names, get_sharkpct
+from sharkCatch.shark_db_interaction import catch_shark, get_feed_info, get_shark_fact, is_daily_catch_done, reward_coins
+from utils.core import get_full_path
 
 load_dotenv()
 
@@ -51,13 +52,13 @@ class SharkXXCatchBot:
         self.Fishing: Fishing | None = None
 
     async def setup(self):
+        if not Path("tokens").exists():
+            Path("tokens").mkdir()
+
         # Non-redeem section
         self.twitch = await Twitch(self.app_id, self.app_secret)
-        auth = UserAuthenticator(self.twitch, self.user_scope)
-        authentication = await auth.authenticate()
-        assert authentication is not None
-        token, refresh_token = authentication
-        await self.twitch.set_user_authentication(token, self.user_scope, refresh_token)
+        auth = UserAuthenticationStorageHelper(self.twitch, self.user_scope, Path("tokens/bot.json"))
+        await auth.bind()
 
         self.chat = await Chat(self.twitch)
         self.Fishing = Fishing(self.chat)  # after Chat is initialised so it is cleanly made
