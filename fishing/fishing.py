@@ -4,7 +4,7 @@ from zoneinfo import ZoneInfo
 
 from twitchAPI.chat import Chat, ChatCommand, ChatUser
 
-from fishing.fishing_db_interaction import add_fish, add_shark, get_shark_names, is_net_available  # noqa
+from fishing.fishing_db_interaction import add_fish, add_shark, get_shark_names, is_net_available, remove_net_use
 from fishing.utils import Boost, Fish, Nets, Rarity, Shark, SharkRarity, Size
 
 
@@ -61,8 +61,12 @@ class Fishing:
             if isinstance(catch, Shark):
                 await add_shark(catch)
                 await cmd.reply(f"You have successfully caught a {catch.name}! You got {catch.coin_value} coins.")
-                return
-            await add_fish(catch)
-            await cmd.reply(f"You have successfully caught a {catch.rarity} fish! You got {catch.coin_value} coins.")
+            else:
+                await add_fish(catch)
+                await cmd.reply(f"You have successfully caught a {catch.rarity} fish! You got {catch.coin_value} coins.")
         else:
             await cmd.reply("Unfortunately you have failed to catch anything.")
+            catch = Fish(cmd.user.name, int(cmd.user.id), Rarity.TRASH, net, Size.LARGE, Boost(False, 2))  # dummy fish variable
+
+        if net != Nets("rope net"):
+            await remove_net_use(catch)
