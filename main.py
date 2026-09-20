@@ -22,7 +22,7 @@ load_dotenv()
 CLIENT_ID = os.getenv("CLIENT_ID")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 USER_SCOPES = [AuthScope.CHAT_READ, AuthScope.CHAT_EDIT]
-TARGET_CHANNELs = ["spiderbyte2007", "sharkocalypse"]
+TARGET_CHANNELs = ["sharkocalypse"]
 assert CLIENT_ID, "Client ID is none, check if ENV exists"
 assert CLIENT_SECRET, "Client Secret is None, check if ENV exists"
 
