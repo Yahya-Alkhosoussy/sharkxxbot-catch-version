@@ -1,21 +1,69 @@
 # This is where the database interactions are
-from datetime import datetime, timedelta # noqa
+from datetime import datetime, timedelta  # noqa
 from pathlib import Path
-from typing import Any
 from enum import Enum
 
 from aiosqlite import connect, OperationalError
 
-from fishing.utils import Fish
+from fishing.utils import Fish, NetsEnum, Shark, Rarity
 
-base_db_path = Path(__file__).parent.parent / "Shark-Bot" / "databases"
+
+base_db_path = Path(__file__).parent.parent.parent / "Shark-Bot" / "databases"
 shark_file_path = base_db_path / "shark_game.db"
 
 
-async def add_fish(fish: Fish):
+async def get_discord_id(twitch_username: str) -> int:
     async with connect(shark_file_path) as conn:
-        await conn.execute("INSERT OR IGNORE INTO fish (rarity, net_used, size) VALUES (?, ?, ?)", (None, None, None))
+        async with conn.execute("SELECT user_id FROM dex WHERE twitch_user=?", (twitch_username,)) as cur:
+            result = await cur.fetchone()
+            if result is None:
+                raise ValueError(f"Could not find user {twitch_username}")
+            return result[0]
+
+
+async def get_discord_username(twitch_username: str) -> str:
+    async with connect(shark_file_path) as conn:
+        async with conn.execute("SELECT username FROM dex WHERE twitch_user=?", (twitch_username,)) as cur:
+            result = await cur.fetchone()
+            if result is None:
+                raise ValueError(f"Could not find user {twitch_username}")
+            return result[0]
+
+
+async def add_fish(fish: Fish):
+    discord_id = await get_discord_id(fish.username)
+    async with connect(shark_file_path) as conn:
+        async with conn.execute("SELECT twitch_id FROM fish WHERE user_id=?", (discord_id,)) as cur:
+            result = await cur.fetchone()
+            if result is None:
+                await conn.execute(
+                    "UPDATE fish SET twitch_id=?, twitch_username=? WHERE discord_id=?",
+                    (fish.user_id, fish.username, discord_id),
+                )
+                await conn.commit()
+
+        match fish.rarity:
+            case Rarity.TRASH:
+                await conn.execute("UPDATE fish SET trash = trash + 1 WHERE twitch_id=?", (fish.user_id,))
+            case Rarity.COMMON:
+                await conn.execute("UPDATE fish SET common = common + 1 WHERE twitch_id=?", (fish.user_id,))
+            case Rarity.SHINY:
+                await conn.execute("UPDATE fish SET shiny = shiny + 1 WHERE twitch_id=?", (fish.user_id,))
+            case Rarity.LEGENDARY:
+                await conn.execute("UPDATE fish SET legendary = legendary + 1 WHERE twitch_id=?", (fish.user_id,))
+
+        new_coin_value = get_new_coins_for_user(fish, discord_id)
+
+        async with conn.execute("SELECT id FROM dex WHERE user_id=? ORDER BY id DESC", (discord_id,)) as cur:
+            result = await cur.fetchone()
+            if result is None:
+                raise ValueError("User is not in the dex")
+            id_value = result[0]
+
+        await conn.execute("UPDATE dex SET coins=? WHERE id=?", (new_coin_value, id_value))
+
         await conn.commit()
+
 
 class NetTypes(Enum):
     LEATHER = 1
@@ -23,13 +71,18 @@ class NetTypes(Enum):
     TITANIUM = 3
     DOOM = 4
 
+
 async def is_net_available(username: str, net: str) -> bool:
     async with connect(shark_file_path) as conn:
-        all_nets: Any = []
+        all_nets: list = []
         nets_available: dict[str, bool] = {}
         try:
-            async with conn.execute(f"SELECT * FROM '{username} nets'") as cur:
+            async with conn.execute(
+                'SELECT "rope net", "leather net", "gold net", "titanium net", "net of doom" FROM nets WHERE user_id=?',
+                (get_discord_id(username),),
+            ) as cur:
                 all_nets.extend(await cur.fetchall())
+
         except OperationalError:
             return False
 
@@ -64,5 +117,60 @@ async def get_shark_names():
                 names.append(name[0])
     return names
 
-async def add_shark(username: str, rarity: str, time: str, net_uses: int):
-    pass
+
+async def get_shark_info(shark: Shark) -> tuple[str, str]:
+    async with connect(shark_file_path) as conn:
+        async with conn.execute("SELECT fact, weight FROM sharks WHERE name=?", (shark.name,)) as cur:
+            result = await cur.fetchone()
+            if result is None:
+                raise ValueError("Shark not found!")
+            return (result[0], result[1])
+
+
+async def get_new_coins_for_user(catch: Shark | Fish, discord_id: int):
+    async with connect(shark_file_path) as conn:
+        async with conn.execute("SELECT coins FROM dex WHERE user_id=? ORDER BY id DESC", (discord_id,)) as cur:
+            result = await cur.fetchone()
+            if result is None:
+                raise ValueError("Could not find User in dex!!")
+            coins: int = result[0]
+
+    return coins + catch.coin_value
+
+
+async def get_user_level(discord_id: int) -> int:
+    async with connect(shark_file_path) as conn:
+        async with conn.execute("SELECT level FROM dex WHERE user_id=? ORDER BY id DESC LIMIT 1", (discord_id,)) as cur:
+            result = await cur.fetchone()
+            if result is None:
+                raise ValueError("Could not find user in dex!!")
+            return result[0]
+
+
+async def add_shark(shark: Shark):
+    user_id = await get_discord_id(shark.username)
+    username = await get_discord_username(shark.username)
+    shark_info = await get_shark_info(shark)
+    async with connect(shark_file_path) as conn:
+        await conn.execute(
+            "INSERT OR IGNORE INTO dex "
+            "(user_id, username, shark, time, fact, weight, net, coins, rarity, level, net_uses, twitch_user, twitch_id, caught_on)"  # noqa
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (
+                user_id,
+                username,
+                shark.name,
+                shark.time_caught,
+                shark_info[0],
+                shark_info[1],
+                NetsEnum.ROPE,
+                await get_new_coins_for_user(shark, user_id),
+                shark.rarity.value,
+                await get_user_level(user_id),
+                0,
+                shark.username,
+                shark.user_id,
+                "twitch",
+            ),
+        )
+        await conn.commit()
