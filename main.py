@@ -64,7 +64,7 @@ class SharkXXCatchBot:
 
     async def on_message(self, msg: ChatMessage):
         assert msg.room
-        print(f"in {msg.room.name}, {msg.user.name} said: {msg.text}")
+        # print(f"in {msg.room.name}, {msg.user.name} said: {msg.text}")
 
     async def on_ready(self, ready_event: EventData):
         print("Bot is ready for work, joining channels")
