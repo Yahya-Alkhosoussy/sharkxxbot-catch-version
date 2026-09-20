@@ -43,13 +43,13 @@ class Fishing:
         return Fish(user.name, int(user.id), Rarity.TRASH, net_used, Size.LARGE, boost)
 
     async def fishing_cmd(self, cmd: ChatCommand):
-        if cmd.text[len("!fishing") :] != "":
-            available = is_net_available(cmd.name, cmd.text[len("!fishing") :])
+        if cmd.text[len("!fish") :] != "":
+            available = is_net_available(cmd.name, cmd.text[len("!fish") :])
             if not available:
                 net = Nets("rope net")
                 await cmd.reply("This net is not available or I could not find it. Using basic net.")
             else:
-                net = Nets(cmd.text[len("!fishing") :])
+                net = Nets(cmd.text[len("!fish") :])
         else:
             net = Nets("rope net")
 

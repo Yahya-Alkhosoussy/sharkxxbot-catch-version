@@ -60,7 +60,7 @@ class SharkXXCatchBot:
         await self.twitch.set_user_authentication(token, self.user_scope, refresh_token)
 
         self.chat = await Chat(self.twitch)
-        self.Fishing = Fishing(self.chat) # after Chat is initialised so it is cleanly made
+        self.Fishing = Fishing(self.chat)  # after Chat is initialised so it is cleanly made
 
     async def on_message(self, msg: ChatMessage):
         assert msg.room
@@ -241,7 +241,7 @@ class SharkXXCatchBot:
         self.chat.register_command("catchshark", self.catchshark)
         self.chat.register_command("sharkcatch", self.catchshark)
 
-        self.chat.register_command("fishing", self.Fishing.fishing_cmd)
+        self.chat.register_command("fish", self.Fishing.fishing_cmd)
 
         self.chat.register_command("restart", self.restart)
 
