@@ -44,7 +44,7 @@ class Fishing:
 
     async def fishing_cmd(self, cmd: ChatCommand):
         if cmd.text[len("!fish") :] != "":
-            available = await is_net_available(cmd.name, cmd.text[len("!fish") :])
+            available = await is_net_available(cmd.user.name, cmd.text[len("!fish") :])
             if not available:
                 net = Nets("rope net")
                 await cmd.reply("This net is not available or I could not find it. Using basic net.")
