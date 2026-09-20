@@ -79,7 +79,7 @@ async def is_net_available(username: str, net: str) -> bool:
         try:
             async with conn.execute(
                 'SELECT "rope net", "leather net", "gold net", "titanium net", "net of doom" FROM nets WHERE user_id=?',
-                (get_discord_id(username),),
+                (await get_discord_id(username),),
             ) as cur:
                 all_nets.extend(await cur.fetchall())
 
