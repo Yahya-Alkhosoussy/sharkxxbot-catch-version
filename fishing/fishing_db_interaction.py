@@ -104,7 +104,7 @@ async def is_net_available(username: str, net: str) -> bool:
                 i += 1
     except IndexError:
         return False
-    if net in nets_available.keys():
+    if net.strip() in nets_available.keys():
         return True
     return False
 
