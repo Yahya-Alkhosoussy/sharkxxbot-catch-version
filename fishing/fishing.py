@@ -64,3 +64,5 @@ class Fishing:
                 return
             await add_fish(catch)
             await cmd.reply(f"You have successfully caught a {catch.rarity} fish! You got {catch.coin_value} coins.")
+        else:
+            await cmd.reply("Unfortunately you have failed to catch anything.")
