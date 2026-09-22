@@ -37,7 +37,7 @@ async def add_fish(fish: Fish):
             result = await cur.fetchone()
             if result is None:
                 await conn.execute(
-                    "UPDATE fish SET twitch_id=?, twitch_username=? WHERE discord_id=?",
+                    "UPDATE fish SET twitch_id=?, twitch_username=? WHERE user_id=?",
                     (fish.user_id, fish.username, discord_id),
                 )
                 await conn.commit()
